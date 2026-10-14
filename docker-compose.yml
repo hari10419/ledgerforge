@@ -1,0 +1,41 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: ledgerforge-db
+
+    environment:
+      POSTGRES_USER: wos
+      POSTGRES_PASSWORD: wos
+      POSTGRES_DB: ledgerforge
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wos -d ledgerforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  api:
+    build: .
+    container_name: ledgerforge-api
+
+    env_file:
+      - .env
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+volumes:
+  postgres_data:
